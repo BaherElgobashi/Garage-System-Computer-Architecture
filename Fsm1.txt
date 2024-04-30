@@ -1,0 +1,145 @@
+module FSM_Car(clk,reset,count,upordown,openorclose,alarm,state);
+  input clk,reset,upordown;
+  output reg[5:0]count=0;
+  output reg openorclose;
+  output reg alarm;
+  parameter s0=2'b00,s1=2'b01,s2=2'b10;
+  output reg [1:0] state;
+  always@(posedge (clk) or posedge (reset))
+  begin
+    if(reset)
+    begin
+      state=s0;
+      count<=0;
+      $monitor("%d",count);
+      openorclose=0;
+      alarm=0;
+      $display("Garage is empty");
+      
+    end
+  else
+    begin
+      case(state)
+  // State Number S0
+        s0:
+        if(upordown)
+          begin
+        state<=s1;
+        count<=count+1;
+        $monitor("%d",count);
+        alarm=0;
+        openorclose=1; // open the door 
+        if(count==50)
+          begin
+          count<=50;
+          $monitor("%d",count);
+          openorclose=0;
+          alarm=1;
+          $display("Garage is Full");
+        end
+      end
+       else
+         begin
+        state<=s0; // count<=count-1;
+        count<=0;
+        $monitor("%d",count);
+        openorclose=0;
+        alarm=0;
+       
+      end
+// State Number S1
+        
+        s1:
+        if(upordown)   
+        begin 
+         state<=s1;
+         count<=count+1;
+         $monitor("%d",count); 
+         openorclose=1; 
+         alarm=0;
+         if(count==50)
+           begin
+           count<=50;
+           $monitor("%d",count);
+           openorclose=0;
+           alarm=1;
+           $display("Garage is Full");
+         end
+       end
+        else if(upordown==0)
+          begin
+          state<=s2;
+          count<=count-1;
+          $monitor("%d",count); 
+          openorclose=1;
+          alarm=0;
+         if(count==0)
+           begin
+           count<=0;
+           $monitor("%d",count);
+           openorclose=0;
+           alarm=0;
+         end
+       end
+ // State Number S2
+        s2:
+        if(upordown) // 1
+          begin
+          state<=s1;
+          count<=count+1;
+          $monitor("%d",count); 
+          openorclose=1; //state<=s1;
+          alarm=0;
+         // state s3
+          if(count==50)
+          begin
+           count<=50;
+           $monitor("%d",count);
+           openorclose=0;
+           alarm=1;
+           $display("Garage is Full");
+         end               
+       end
+        else
+          begin
+           state<=s2;
+          count<=count-1;
+          $monitor("%d",count);
+          openorclose=1;
+          alarm=0;
+          if(count==0)
+           begin
+           count<=0;
+           $monitor("%d",count);
+           $display("Garage is Empty");
+           openorclose=0;
+           alarm=0;
+         end
+        end
+        endcase 
+    end  
+  end  
+endmodule
+
+// Test Bench
+module FSM_TB_Car();
+  
+  reg clk;
+  reg reset;
+  wire[5:0]count;
+  wire[1:0]state;
+  wire openorclose;
+  wire alarm;
+  reg upordown;
+  //wire upordown=1;
+   initial clk = 0;
+    always #5 clk = ~clk;
+  initial
+ begin 
+    upordown=1;
+     reset=1; #5;
+     reset=0;
+    upordown=1;
+  end
+  FSM_Car C1(clk,reset,count,upordown,openorclose,alarm,state);
+endmodule

@@ -1,0 +1,52 @@
+module COUNTER_TO_DECODER (clk,reset,upordown,leds,leds2);
+  
+  input clk,reset,upordown;
+  output[6:0]leds,leds2;
+  wire[5:0]count;
+  wire openorclose;
+  wire alarm;
+  wire[1:0]state;
+  FSM_Car C2(clk,reset,count,upordown,openorclose,alarm,state);    
+  wire[3:0] digit1=count%10;
+  
+  wire[3:0] digit2=count/10;
+  
+  dec seg1(digit1[3],digit1[2],digit1[1],digit1[0],leds[6],leds[5],leds[4],leds[3],leds[2],leds[1],leds[0]);
+  
+//1000 ->8 
+  dec seg2(digit2[3],digit2[2],digit2[1],digit2[0],leds2[6],leds2[5],leds2[4],leds2[3],leds2[2],leds2[1],leds2[0]);
+  
+endmodule
+
+module COUNTER_TO_DECODER_TB();
+  
+reg clk;
+reg reset;
+reg upordown; 
+wire openorclose;
+wire alarm;
+wire [5:0]count;
+wire[1:0]state;
+wire [6:0]leds;
+wire [6:0]leds2;
+
+initial clk = 0;
+    always #(100/20) clk = ~clk;
+    
+initial begin 
+  upordown=1;
+  reset=1; #5;
+  reset=0;
+  upordown=1;
+//  #200;
+//  upordown=0;
+  #200;
+  upordown=1;
+  #50;
+  upordown=1;
+  #100;
+end
+FSM_Car c3(clk,reset,count,upordown,openorclose,alarm,state);
+
+COUNTER_TO_DECODER DV(clk,reset,upordown,leds,leds2);
+endmodule
